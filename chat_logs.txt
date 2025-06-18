@@ -1,0 +1,6 @@
+User: i am having severe headache. What should i do?
+Predicted intent: medication_advice
+
+User: what to do for a cold?
+Predicted intent: medication_advice
+
