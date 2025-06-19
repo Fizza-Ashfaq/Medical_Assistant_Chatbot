@@ -15,7 +15,6 @@ def chat():
     user_input = request.form['message']
     intent_or_response = predict_naive_bayes(model, user_input)
 
-    # If it's a custom message response (like "Hi! How can I assist you today?"), return it directly
     if intent_or_response in ["Hi! How can I assist you today? 😊", "Goodbye! Have a nice day! 👋"]:
         response = intent_or_response
     else:
