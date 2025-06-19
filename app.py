@@ -23,11 +23,14 @@ def chat():
             if query in user_input.lower():
                 matched = descriptions[query]
                 break
+            elif any(word in user_input.lower().split() for word in query.split()):
+                matched = descriptions[query]
+                break
 
         if matched:
             response = matched
         else:
-            response = "I'm here to help, could you clarify your request?"
+            response = "I'm still learning! 🤖 Try asking a more direct medical question or rephrasing it."
 
     return {'response': response}
 

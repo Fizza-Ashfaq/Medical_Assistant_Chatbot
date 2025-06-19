@@ -37,13 +37,11 @@ def train_naive_bayes(texts, labels):
 def predict_naive_bayes(model, text):
     user_input = text.lower().strip()
 
-    # Custom rule-based greetings
     if user_input in ["hi", "hello", "hey"]:
         return "Hi! How can I assist you today? 😊"
     if user_input in ["bye", "goodbye", "see you"]:
         return "Goodbye! Have a nice day! 👋"
 
-    # Continue with ML model prediction
     tokens = tokenize(user_input)
     scores = {}
     vocab_size = len(model['vocab'])
@@ -59,3 +57,4 @@ def predict_naive_bayes(model, text):
         scores[label] = log_prob
 
     return max(scores, key=scores.get)
+
