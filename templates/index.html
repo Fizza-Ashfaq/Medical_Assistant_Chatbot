@@ -1,60 +1,170 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Medical Assistant Chatbot</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <meta charset="UTF-8" />
+  <title>Medical Assistant Chatbot</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    /* Loader Styling */
+    #loader-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #fbeaff, #e0f7fa, #ffe0ec);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      z-index: 9999;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .heart-container {
+      position: relative;
+      width: 180px;
+      height: 160px;
+      animation: beat 1.3s infinite;
+    }
+
+    .heart {
+      background: radial-gradient(circle at 30% 30%, #ff5e78, #ff2c54);
+      width: 100px;
+      height: 100px;
+      transform: rotate(-45deg);
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      margin: -50px 0 0 -50px;
+      border-radius: 50px 50px 0 0;
+      box-shadow: 0 10px 20px rgba(255, 94, 120, 0.4);
+    }
+
+    .heart:after,
+    .heart:before {
+      content: "";
+      background: inherit;
+      border-radius: 50px;
+      width: 100px;
+      height: 100px;
+      position: absolute;
+    }
+
+    .heart:before {
+      top: -50px;
+      left: 0;
+    }
+
+    .heart:after {
+      left: 50px;
+      top: 0;
+    }
+
+    @keyframes beat {
+      0%, 100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.2);
+      }
+    }
+
+    .loader-text {
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    .loader-text h1 {
+      font-size: 32px;
+      color: #7c4dff;
+      margin: 10px 0;
+      text-shadow: 0 2px 3px rgba(124, 77, 255, 0.2);
+    }
+
+    .loader-text p {
+      font-size: 18px;
+      color: #333;
+      opacity: 0.7;
+    }
+
+    /* Hide chat initially */
+    .chat-container {
+      display: none;
+    }
+  </style>
 </head>
 <body>
-    <div class="chat-container">
-        <div id="chat-box"></div>
-        <form id="chat-form">
-            <input type="text" id="message-input" placeholder="Type your message..." autocomplete="off" required>
-            <button type="submit">Send</button>
-        </form>
+
+  <!-- Loader Screen -->
+  <div id="loader-screen">
+    <div class="heart-container">
+      <div class="heart"></div>
     </div>
+    <div class="loader-text">
+      <h1>Checking your vitals... 🩺</h1>
+      <p>Loading your AI-powered medical assistant 💬</p>
+    </div>
+  </div>
 
-    <script>
-        const form = document.getElementById('chat-form');
-        const input = document.getElementById('message-input');
-        const chatBox = document.getElementById('chat-box');
+  <!-- Chat Interface -->
+  <div class="chat-container">
+    <div id="chat-box"></div>
+    <form id="chat-form">
+      <input type="text" id="message-input" placeholder="Type your message..." autocomplete="off" required>
+      <button type="submit">Send</button>
+    </form>
+  </div>
 
-        function appendMessage(sender, text) {
-            const msgDiv = document.createElement('div');
-            msgDiv.classList.add('chat-message', `${sender}-msg`);
+  <script>
+    // Loader timeout
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        document.getElementById('loader-screen').style.display = 'none';
+        document.querySelector('.chat-container').style.display = 'block';
+      }, 2500);
+    });
 
-            const avatar = document.createElement('img');
-            avatar.classList.add('avatar');
-            avatar.src = sender === 'user' ? '/static/boy.png' : '/static/bot - Copy.png';
-            avatar.alt = sender;
+    const form = document.getElementById('chat-form');
+    const input = document.getElementById('message-input');
+    const chatBox = document.getElementById('chat-box');
 
-            const bubble = document.createElement('div');
-            bubble.classList.add('bubble');
-            bubble.textContent = text;
+    function appendMessage(sender, text) {
+      const msgDiv = document.createElement('div');
+      msgDiv.classList.add('chat-message', `${sender}-msg`);
 
-            msgDiv.appendChild(avatar);
-            msgDiv.appendChild(bubble);
-            chatBox.appendChild(msgDiv);
-            chatBox.scrollTop = chatBox.scrollHeight;
-        }
+      const avatar = document.createElement('img');
+      avatar.classList.add('avatar');
+      avatar.src = sender === 'user' ? '/static/boy.png' : '/static/bot - Copy.png';
+      avatar.alt = sender;
 
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const message = input.value.trim();
-            if (!message) return;
+      const bubble = document.createElement('div');
+      bubble.classList.add('bubble');
+      bubble.textContent = text;
 
-            appendMessage('user', message);
-            input.value = '';
+      msgDiv.appendChild(avatar);
+      msgDiv.appendChild(bubble);
+      chatBox.appendChild(msgDiv);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
 
-            const res = await fetch('/chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: new URLSearchParams({ message })
-            });
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const message = input.value.trim();
+      if (!message) return;
 
-            const data = await res.json();
-            appendMessage('bot', data.response);
-        });
-    </script>
+      appendMessage('user', message);
+      input.value = '';
+
+      const res = await fetch('/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ message })
+      });
+
+      const data = await res.json();
+      appendMessage('bot', data.response);
+    });
+  </script>
 </body>
 </html>
