@@ -13,19 +13,22 @@ def index():
 @app.route('/chat', methods=['POST'])
 def chat():
     user_input = request.form['message']
-    intent = predict_naive_bayes(model, user_input)
+    intent_or_response = predict_naive_bayes(model, user_input)
 
-    # If intent is symptom_info, try to match
-    matched = None
-    for query in descriptions:
-        if query in user_input.lower():
-            matched = descriptions[query]
-            break
-
-    if matched:
-        response = matched
+    # If it's a custom message response (like "Hi! How can I assist you today?"), return it directly
+    if intent_or_response in ["Hi! How can I assist you today? 😊", "Goodbye! Have a nice day! 👋"]:
+        response = intent_or_response
     else:
-        response = "I'm here to help, could you clarify your request?"
+        matched = None
+        for query in descriptions:
+            if query in user_input.lower():
+                matched = descriptions[query]
+                break
+
+        if matched:
+            response = matched
+        else:
+            response = "I'm here to help, could you clarify your request?"
 
     return {'response': response}
 
