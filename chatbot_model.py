@@ -4,14 +4,16 @@ import math
 from collections import defaultdict, Counter
 
 def load_dataset(path):
-    texts, labels, descriptions = [], [], {}
+    texts, labels, descriptions, treatments = [], [], {}, {}
     with open(path, newline='', encoding='utf-8') as f:
         reader = csv.DictReader(f)
         for row in reader:
             texts.append(row['query'].lower())
             labels.append(row['intent'])
             descriptions[row['query'].lower()] = row['description']
-    return texts, labels, descriptions
+            treatments[row['query'].lower()] = row.get('treatment', '')
+    return texts, labels, descriptions, treatments
+
 
 def tokenize(text):
     return re.findall(r'\b\w+\b', text.lower())
