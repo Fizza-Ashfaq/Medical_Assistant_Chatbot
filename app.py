@@ -1,38 +1,54 @@
-from flask import Flask, render_template, request
-from chatbot_model import load_dataset, train_naive_bayes, predict_naive_bayes
+from flask import Flask, request, render_template
+from chatbot_model import load_model, predict
+import csv
 
 app = Flask(__name__)
+model, vocab, idx2label = load_model()
 
-texts, labels, descriptions = load_dataset('medical_queries.csv')
-model = train_naive_bayes(texts, labels)
+# Load symptom descriptions and recommendations
+info_data = {}
+with open('medical_queries.csv', encoding='utf-8') as f:
+    reader = csv.DictReader(f)
+    for row in reader:
+        info_data[row['query'].lower()] = {
+            "description": row['description'],
+            "recommendation": row.get('recommendation', 'No advice available.')
+        }
 
 @app.route('/')
-def index():
+def home():
     return render_template('index.html')
 
 @app.route('/chat', methods=['POST'])
 def chat():
     user_input = request.form['message']
-    intent_or_response = predict_naive_bayes(model, user_input)
+    predicted_label, description, recommendation = predict(user_input, model, vocab, idx2label)
 
-    if intent_or_response in ["Hi! How can I assist you today? 😊", "Goodbye! Have a nice day! 👋"]:
-        response = intent_or_response
-    else:
-        matched = None
-        for query in descriptions:
-            if query in user_input.lower():
-                matched = descriptions[query]
-                break
-            elif any(word in user_input.lower().split() for word in query.split()):
-                matched = descriptions[query]
-                break
+    # fallback if predict misses
+    info = info_data.get(predicted_label.lower(), {
+        "description": description,
+        "recommendation": recommendation
+    })
 
-        if matched:
-            response = matched
-        else:
-            response = "I'm still learning! 🤖 Try asking a more direct medical question or rephrasing it."
+    response = f"""
+🤖 Medical Assistant Bot  
+─────────────────────────────  
+📝 You said:  
+   ➤ "{user_input.strip()}"  
+
+🩺 Diagnosis Prediction:  
+   ➤ {predicted_label.capitalize()}  
+
+📚 About {predicted_label.capitalize()}:  
+   {info['description']}  
+
+💡 What You Should Do:  
+   ➤ {info['recommendation']}  
+
+🩻 Wishing you a quick recovery! ❤️
+""".strip()
 
     return {'response': response}
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(debug=True)
